@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
+import 'package:omni_core_ui/omni_core_ui.dart' show OmniOta;
 
 /// ============================================================================
 /// HALO PLAZA & ARCADE SPATIAL HUB UI (CANONICAL - REAL-TIME SINGLE NODE)
@@ -92,6 +93,24 @@ class _HaloPlazaMainScreenState extends State<HaloPlazaMainScreen> {
         ),
         backgroundColor: const Color(0xFF16162A),
         elevation: 2,
+        actions: [
+          PopupMenuButton<String>(
+            tooltip: 'More',
+            onSelected: (value) {
+              if (value == 'check_updates') OmniOta.checkAndPrompt(context);
+            },
+            itemBuilder: (_) => const [
+              PopupMenuItem<String>(
+                value: 'check_updates',
+                child: ListTile(
+                  leading: Icon(Icons.system_update),
+                  title: Text('Check for updates'),
+                  contentPadding: EdgeInsets.zero,
+                ),
+              ),
+            ],
+          ),
+        ],
       ),
       body: _buildCurrentZoneView(),
       bottomNavigationBar: BottomNavigationBar(
