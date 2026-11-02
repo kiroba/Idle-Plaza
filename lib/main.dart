@@ -87,8 +87,8 @@ class _HaloPlazaMainScreenState extends State<HaloPlazaMainScreen> {
         title: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: const [
-            Text('Halo Plaza Hub', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18)),
-            Text('1 Sovereign Player Online • Local State', style: TextStyle(color: Color(0xFF03DAC6), fontSize: 11)),
+            Text('Halo Plaza Hub', maxLines: 1, overflow: TextOverflow.ellipsis, style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18)),
+            Text('1 Sovereign Player Online • Local State', maxLines: 1, overflow: TextOverflow.ellipsis, style: TextStyle(color: Color(0xFF03DAC6), fontSize: 11)),
           ],
         ),
         backgroundColor: const Color(0xFF16162A),
@@ -145,11 +145,9 @@ class _HaloPlazaMainScreenState extends State<HaloPlazaMainScreen> {
   }
 
   Widget _buildPlazaHubView() {
-    return Padding(
+    return ListView(
       padding: const EdgeInsets.all(16),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
+      children: [
           Container(
             width: double.infinity,
             padding: const EdgeInsets.all(20),
@@ -180,9 +178,6 @@ class _HaloPlazaMainScreenState extends State<HaloPlazaMainScreen> {
           const SizedBox(height: 20),
           const Text('Plaza Gathering Destinations', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.white)),
           const SizedBox(height: 12),
-          Expanded(
-            child: ListView(
-              children: [
                 _buildDestinationTile(
                   title: 'Arcade Lounge',
                   subtitle: '2D Combat Brawler, 9x9 Maze, Janken AI, Spades',
@@ -197,26 +192,21 @@ class _HaloPlazaMainScreenState extends State<HaloPlazaMainScreen> {
                   color: const Color(0xFF03DAC6),
                   onTap: () => setState(() => _currentZoneIndex = 2),
                 ),
-              ],
-            ),
-          ),
-        ],
-      ),
+      ],
     );
   }
 
   Widget _buildArcadeLoungeView() {
-    return Padding(
+    return ListView(
       padding: const EdgeInsets.all(16),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
+      children: [
           const Text('Arcade Lounge Mini-Games', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.white)),
           const SizedBox(height: 6),
           const Text('All skill-based mini-games run locally on your sovereign engine.', style: TextStyle(color: Colors.grey, fontSize: 12)),
           const SizedBox(height: 16),
-          Expanded(
-            child: GridView.count(
+          GridView.count(
+              shrinkWrap: true,
+              physics: const NeverScrollableScrollPhysics(),
               crossAxisCount: 2,
               crossAxisSpacing: 12,
               mainAxisSpacing: 12,
@@ -227,14 +217,12 @@ class _HaloPlazaMainScreenState extends State<HaloPlazaMainScreen> {
                 _buildArcadeGameCard('Spades Lounge', 'Casual Card Strategy', Icons.style, const Color(0xFF7C4DFF)),
               ],
             ),
-          ),
-        ],
-      ),
+      ],
     );
   }
 
   Widget _buildRpgIdleRealmView() {
-    return Padding(
+    return SingleChildScrollView(
       padding: const EdgeInsets.all(16),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -253,12 +241,14 @@ class _HaloPlazaMainScreenState extends State<HaloPlazaMainScreen> {
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      Row(
-                        children: const [
-                          Icon(Icons.hardware, color: Color(0xFF03DAC6)),
-                          SizedBox(width: 8),
-                          Text('Mining Skill', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
-                        ],
+                      Flexible(
+                        child: Row(
+                          children: const [
+                            Icon(Icons.hardware, color: Color(0xFF03DAC6)),
+                            SizedBox(width: 8),
+                            Flexible(child: Text('Mining Skill', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold))),
+                          ],
+                        ),
                       ),
                       Text('Level $_miningLevel', style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Color(0xFF03DAC6))),
                     ],
@@ -325,8 +315,10 @@ class _HaloPlazaMainScreenState extends State<HaloPlazaMainScreen> {
         },
         child: Padding(
           padding: const EdgeInsets.all(12),
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
+          child: FittedBox(
+            fit: BoxFit.scaleDown,
+            child: Column(
+            mainAxisSize: MainAxisSize.min,
             children: [
               Icon(icon, size: 36, color: color),
               const SizedBox(height: 8),
@@ -334,6 +326,7 @@ class _HaloPlazaMainScreenState extends State<HaloPlazaMainScreen> {
               const SizedBox(height: 4),
               Text(subtitle, textAlign: TextAlign.center, style: const TextStyle(fontSize: 10, color: Colors.grey)),
             ],
+          ),
           ),
         ),
       ),
