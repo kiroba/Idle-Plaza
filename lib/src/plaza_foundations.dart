@@ -28,13 +28,15 @@ class PlazaFoundationAsset {
 
 const String _dir = 'assets/plaza';
 
-/// The one composed scene render: scenery set #1 + figures, baked offline.
+/// The one composed scene render: scenery set #1 + figures + companion
+/// set #1 (placed in the scene Nov 16, 2026), baked offline.
 const PlazaFoundationAsset plazaSceneAsset = PlazaFoundationAsset(
   id: 'scene-three-quarter',
   name: 'Plaza Scene',
   assetPath: '$_dir/scene_three_quarter.jpg',
   category: PlazaFoundationCategory.scene,
-  note: 'Baked three-quarter render of the composed Plaza — not live 3D.',
+  note:
+      'Baked three-quarter render of the composed Plaza, companions included — not live 3D.',
 );
 
 /// Figure base #3 "soft" (the kept consensus base) — 128px sprites.
