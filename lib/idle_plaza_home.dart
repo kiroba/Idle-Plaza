@@ -2,6 +2,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:omni_core_ui/omni_core_ui.dart' show OmniOta;
 
+import 'plaza_scene_screen.dart';
 import 'src/idle_engine.dart';
 import 'src/idle_store.dart';
 
@@ -237,6 +238,15 @@ class _IdlePlazaHomeState extends State<IdlePlazaHome> with WidgetsBindingObserv
           icon: Icons.fort_outlined,
           color: const Color(0xFF03DAC6),
           onTap: () => setState(() => _currentZoneIndex = 2),
+        ),
+        _buildDestinationTile(
+          title: 'Plaza Foundations',
+          subtitle: 'Low-poly scene, figures & companions — baked renders',
+          icon: Icons.landscape_outlined,
+          color: const Color(0xFFFFB74D),
+          onTap: () => Navigator.of(context).push(
+            MaterialPageRoute(builder: (_) => const PlazaSceneScreen()),
+          ),
         ),
       ],
     );
