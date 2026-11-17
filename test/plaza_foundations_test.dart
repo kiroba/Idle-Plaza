@@ -59,4 +59,45 @@ void main() {
       }
     });
   });
+
+  group('Live stage roster', () {
+    test('scene entry is the no-animals backdrop and the file exists', () {
+      expect(plazaSceneAsset.id, 'scene-backdrop');
+      expect(plazaSceneAsset.assetPath, 'assets/plaza/scene_backdrop.jpg');
+      expect(File(plazaSceneAsset.assetPath).existsSync(), isTrue);
+    });
+
+    test('roster has 10 unique animals', () {
+      expect(plazaAnimals, hasLength(10));
+      final ids = plazaAnimals.map((a) => a.id).toList();
+      expect(ids.toSet(), hasLength(ids.length));
+    });
+
+    test('every animal still and every idle frame exists on disk', () {
+      for (final a in plazaAnimals) {
+        expect(File(a.stillAsset).existsSync(), isTrue,
+            reason: '${a.id} still -> ${a.stillAsset}');
+        expect(a.idleFrames, hasLength(plazaIdleFrameCount), reason: a.id);
+        for (final f in a.idleFrames) {
+          expect(File(f).existsSync(), isTrue, reason: '${a.id} -> $f');
+        }
+      }
+    });
+
+    test('spots are fractions within the backdrop square', () {
+      for (final a in plazaAnimals) {
+        expect(a.spotDx, inInclusiveRange(0.0, 1.0), reason: a.id);
+        expect(a.spotDy, inInclusiveRange(0.0, 1.0), reason: a.id);
+        expect(a.spotWidth, inInclusiveRange(0.0, 1.0), reason: a.id);
+      }
+    });
+
+    test('companion catalog covers all 10 animals (sets #1 + #2)', () {
+      expect(plazaCompanionAssets, hasLength(20));
+      final paths = plazaCompanionAssets.map((a) => a.assetPath).toSet();
+      for (final a in plazaAnimals) {
+        expect(paths, contains(a.stillAsset), reason: a.id);
+      }
+    });
+  });
 }
