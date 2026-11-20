@@ -12,6 +12,11 @@
 /// plazaAnimals composited on top, rotating in and out and idle-animating,
 /// under a real-time day/night tint (see src/plaza_live.dart). The sections
 /// below the stage still render the catalog grids exactly as listed.
+///
+/// Live Plaza 2 adds journeys and the pond: animals WALK to and from their
+/// spots on a swap (birds FLY — move/fly frame sets below), and the pond
+/// set piece (plazaPondAsset, placed by plazaPond) carries fish from
+/// plazaFish, drifting on ovals inside its water.
 /// ============================================================================
 
 enum PlazaFoundationCategory { scene, figure, companion, scenery }
@@ -221,6 +226,48 @@ const List<PlazaFoundationAsset> plazaCompanionAssets = [
     category: PlazaFoundationCategory.companion,
     note: 'Companion set #2 crow, three-quarter sprite.',
   ),
+  PlazaFoundationAsset(
+    id: 'companion-koi-front',
+    name: 'Koi — Front',
+    assetPath: '$_dir/companion-koi-01_front.png',
+    category: PlazaFoundationCategory.companion,
+    note: 'Companion set #3 (pond fish) koi, front sprite.',
+  ),
+  PlazaFoundationAsset(
+    id: 'companion-koi-three-quarter',
+    name: 'Koi — Three-Quarter',
+    assetPath: '$_dir/companion-koi-01_three_quarter.png',
+    category: PlazaFoundationCategory.companion,
+    note: 'Companion set #3 (pond fish) koi, three-quarter sprite.',
+  ),
+  PlazaFoundationAsset(
+    id: 'companion-goldfish-front',
+    name: 'Goldfish — Front',
+    assetPath: '$_dir/companion-goldfish-01_front.png',
+    category: PlazaFoundationCategory.companion,
+    note: 'Companion set #3 (pond fish) goldfish, front sprite.',
+  ),
+  PlazaFoundationAsset(
+    id: 'companion-goldfish-three-quarter',
+    name: 'Goldfish — Three-Quarter',
+    assetPath: '$_dir/companion-goldfish-01_three_quarter.png',
+    category: PlazaFoundationCategory.companion,
+    note: 'Companion set #3 (pond fish) goldfish, three-quarter sprite.',
+  ),
+  PlazaFoundationAsset(
+    id: 'companion-bluefish-front',
+    name: 'Blue Fish — Front',
+    assetPath: '$_dir/companion-bluefish-01_front.png',
+    category: PlazaFoundationCategory.companion,
+    note: 'Companion set #3 (pond fish) blue fish, front sprite.',
+  ),
+  PlazaFoundationAsset(
+    id: 'companion-bluefish-three-quarter',
+    name: 'Blue Fish — Three-Quarter',
+    assetPath: '$_dir/companion-bluefish-01_three_quarter.png',
+    category: PlazaFoundationCategory.companion,
+    note: 'Companion set #3 (pond fish) blue fish, three-quarter sprite.',
+  ),
 ];
 
 /// ============================================================================
@@ -238,6 +285,22 @@ const String _animDir = 'assets/plaza/anim';
 /// cycle (frames 001, 003, …, 015), palette-quantized to keep the bundle
 /// lean. Played at 8 fps they read as the full idle, just sampled.
 const int plazaIdleFrameCount = 8;
+
+/// Move frames shipped per animal: the whole 8-frame move cycle,
+/// palette-quantized the same way. Played while walking to/from a spot.
+const int plazaMoveFrameCount = 8;
+
+/// Fly frames shipped per bird: the whole 8-frame fly cycle.
+const int plazaFlyFrameCount = 8;
+
+/// Swim frames shipped per fish: the whole 8-frame swim cycle.
+const int plazaSwimFrameCount = 8;
+
+/// How an animal travels on a rotation swap: land animals walk, birds fly.
+enum PlazaAnimalKind { land, bird }
+
+/// The roster's birds — the animals with a fly cycle.
+const Set<String> plazaBirdIds = {'songbird', 'owl', 'duck', 'crow'};
 
 class PlazaAnimal {
   /// Short species id, e.g. 'fox'. Also the rotation pool id.
@@ -276,6 +339,31 @@ class PlazaAnimal {
   /// All shipped idle frames, in play order.
   List<String> get idleFrames =>
       [for (var k = 0; k < plazaIdleFrameCount; k++) idleFramePath(k)];
+
+  /// The shipped move frame for step [k] (0-based, < plazaMoveFrameCount).
+  String moveFramePath(int k) => '$_animDir/companion-$id-01_move_$k.png';
+
+  /// All shipped move frames, in play order — played while the animal
+  /// walks to or from its spot during a rotation swap.
+  List<String> get moveFrames =>
+      [for (var k = 0; k < plazaMoveFrameCount; k++) moveFramePath(k)];
+
+  /// True for the birds (songbird, owl, duck, crow).
+  bool get isBird => plazaBirdIds.contains(id);
+
+  /// The shipped fly frame for step [k] (0-based, < plazaFlyFrameCount).
+  /// Only meaningful for birds — see [flyFrames].
+  String flyFramePath(int k) => '$_animDir/companion-$id-01_fly_$k.png';
+
+  /// All shipped fly frames for birds; null for land animals, which walk
+  /// instead. Birds fly in and out on rotation swaps.
+  List<String>? get flyFrames => isBird
+      ? [for (var k = 0; k < plazaFlyFrameCount; k++) flyFramePath(k)]
+      : null;
+
+  /// Travel kind for rotation swaps: bird iff this animal has fly frames.
+  PlazaAnimalKind get kind =>
+      flyFrames != null ? PlazaAnimalKind.bird : PlazaAnimalKind.land;
 }
 
 /// All 10 library animals. Set #1 spots match where they sat in the baked
@@ -366,6 +454,145 @@ const List<PlazaAnimal> plazaAnimals = [
   ),
 ];
 
+/// ============================================================================
+/// POND FISH ROSTER (companion set #3)
+/// ============================================================================
+/// Fish live only in the pond (see plazaPond): they drift on small ovals
+/// inside the water's fish-safe ellipse, cycling their swim frames, and
+/// species rotate on the same timer family as the land animals. They
+/// never walk, fly, or leave the water.
+/// ============================================================================
+
+class PlazaFish {
+  /// Short species id, e.g. 'koi'. Also the fish rotation pool id.
+  final String id;
+
+  final String name;
+
+  /// Three-quarter still sprite (assets/plaza/), used in the catalog grid.
+  final String stillAsset;
+
+  /// On-stage sprite width as a fraction of the stage width. Stylized:
+  /// at true scale against the pond these fish would be a few pixels —
+  /// they are drawn at companion scale so they read on a phone screen.
+  final double widthFraction;
+
+  const PlazaFish({
+    required this.id,
+    required this.name,
+    required this.stillAsset,
+    required this.widthFraction,
+  });
+
+  /// The shipped swim frame for step [k] (0-based, < plazaSwimFrameCount).
+  String swimFramePath(int k) => '$_animDir/companion-$id-01_swim_$k.png';
+
+  /// All shipped swim frames, in play order.
+  List<String> get swimFrames =>
+      [for (var k = 0; k < plazaSwimFrameCount; k++) swimFramePath(k)];
+}
+
+/// All 3 pond fish (set #3). Lengths 0.43 / 0.36 / 0.39 pond units —
+/// widths below keep that ordering at the stylized on-stage scale.
+const List<PlazaFish> plazaFish = [
+  PlazaFish(
+    id: 'koi',
+    name: 'Koi',
+    stillAsset: '$_dir/companion-koi-01_three_quarter.png',
+    widthFraction: 0.058,
+  ),
+  PlazaFish(
+    id: 'goldfish',
+    name: 'Goldfish',
+    stillAsset: '$_dir/companion-goldfish-01_three_quarter.png',
+    widthFraction: 0.050,
+  ),
+  PlazaFish(
+    id: 'bluefish',
+    name: 'Blue Fish',
+    stillAsset: '$_dir/companion-bluefish-01_three_quarter.png',
+    widthFraction: 0.054,
+  ),
+];
+
+/// ============================================================================
+/// THE POND — measured placement on the backdrop
+/// ============================================================================
+/// The pond set piece sits at world (−5.6, 4.0) in the composed scene, in
+/// front of Storefront A. Its layer image (plazaPondAsset) is the ortho
+/// top-down render with the (opaque) ground outside the rim circular-
+/// masked away and the square perspective-warped to the backdrop camera,
+/// so the layer lands where the real 3D pond lands in the scene render.
+///
+/// All numbers below are backdrop fractions, MEASURED by rendering the
+/// pond alone with the backdrop's exact camera (az 32° / el 24°, target
+/// (0, 2.0, 1.2)) and projecting the geometry: the layer rect is the
+/// projected 5.6-unit top-down frame (bbox of its four corners); the water
+/// centre and radii are the projected water circles (the usable ellipse
+/// is the r ≤ 1.70 fish-safe circle; the physical ellipse is the r = 1.92
+/// water disc). Cross-checked against the pond render's alpha silhouette
+/// and a PIL composite read — the warped layer sits naturally on the
+/// paving in front of Storefront A.
+/// ============================================================================
+
+/// The pond layer image: top-down render, masked + perspective-warped.
+const PlazaFoundationAsset plazaPondAsset = PlazaFoundationAsset(
+  id: 'pond-top-down',
+  name: 'Pond — Top-Down (Warped)',
+  assetPath: '$_dir/pond_top_down.png',
+  category: PlazaFoundationCategory.scenery,
+  note:
+      'Pond set piece, ortho top-down render circular-masked and perspective-warped to the backdrop camera — composited live over the backdrop, with the fish swimming in it.',
+);
+
+class PlazaPond {
+  /// Layer rect on the square backdrop, as fractions.
+  final double layerLeft;
+  final double layerTop;
+  final double layerWidth;
+  final double layerHeight;
+
+  /// Water centre on the backdrop, as fractions.
+  final double waterDx;
+  final double waterDy;
+
+  /// Fish-safe ellipse radii (the r ≤ 1.70 circle, projected): fish
+  /// centres and their swim ovals stay inside this.
+  final double usableRx;
+  final double usableRy;
+
+  /// Physical water ellipse radii (the r = 1.92 disc, projected).
+  final double waterRx;
+  final double waterRy;
+
+  const PlazaPond({
+    required this.layerLeft,
+    required this.layerTop,
+    required this.layerWidth,
+    required this.layerHeight,
+    required this.waterDx,
+    required this.waterDy,
+    required this.usableRx,
+    required this.usableRy,
+    required this.waterRx,
+    required this.waterRy,
+  });
+}
+
+/// The measured pond placement (see the section comment above).
+const PlazaPond plazaPond = PlazaPond(
+  layerLeft: 0.2930,
+  layerTop: 0.4336,
+  layerWidth: 0.2148,
+  layerHeight: 0.0869,
+  waterDx: 0.4020,
+  waterDy: 0.4725,
+  usableRx: 0.0452,
+  usableRy: 0.0175,
+  waterRx: 0.0511,
+  waterRy: 0.0198,
+);
+
 /// Scenery set #1 pieces — three-quarter baked renders (512px, JPG).
 const List<PlazaFoundationAsset> plazaSceneryAssets = [
   PlazaFoundationAsset(
@@ -431,6 +658,7 @@ const List<PlazaFoundationAsset> plazaSceneryAssets = [
     category: PlazaFoundationCategory.scenery,
     note: 'Plaza bench.',
   ),
+  plazaPondAsset,
 ];
 
 /// Every foundation asset, scene first.
