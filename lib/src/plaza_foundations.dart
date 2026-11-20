@@ -1,11 +1,17 @@
 /// ============================================================================
 /// PLAZA FOUNDATIONS CATALOG (pure Dart — no Flutter imports)
 /// ============================================================================
-/// The low-poly Plaza foundations slice: the composed Plaza scene, the kept
-/// base #3 "soft" figure sprites, companion set #1 sprites, and the scenery
-/// set #1 pieces. Every entry is a baked render or sprite PNG/JPG shipped in
-/// assets/plaza/ — there is no live 3D in the app, and this catalog does not
-/// pretend otherwise. PlazaSceneScreen renders exactly what is listed here.
+/// The low-poly Plaza foundations slice: the Plaza backdrop render, the kept
+/// base #3 "soft" figure sprites, companion set #1 + #2 sprites, and the
+/// scenery set #1 pieces. Every entry is a baked render or sprite PNG/JPG
+/// shipped in assets/plaza/ — there is no live 3D in the app, and this
+/// catalog does not pretend otherwise.
+///
+/// The scene screen's top card is a LIVE composite built from this catalog:
+/// the no-animals backdrop (plazaSceneAsset) with animal sprites from
+/// plazaAnimals composited on top, rotating in and out and idle-animating,
+/// under a real-time day/night tint (see src/plaza_live.dart). The sections
+/// below the stage still render the catalog grids exactly as listed.
 /// ============================================================================
 
 enum PlazaFoundationCategory { scene, figure, companion, scenery }
@@ -28,15 +34,17 @@ class PlazaFoundationAsset {
 
 const String _dir = 'assets/plaza';
 
-/// The one composed scene render: scenery set #1 + figures + companion
-/// set #1 (placed in the scene Nov 16, 2026), baked offline.
+/// The live stage backdrop: the composed Plaza scene (scenery set #1 + the
+/// Halo) rendered WITHOUT animals — plaza-scene-nopets, same three-quarter
+/// camera as the old baked scene. Animals are composited live on top of it
+/// from plazaAnimals; they are deliberately not baked in here.
 const PlazaFoundationAsset plazaSceneAsset = PlazaFoundationAsset(
-  id: 'scene-three-quarter',
-  name: 'Plaza Scene',
-  assetPath: '$_dir/scene_three_quarter.jpg',
+  id: 'scene-backdrop',
+  name: 'Plaza Backdrop',
+  assetPath: '$_dir/scene_backdrop.jpg',
   category: PlazaFoundationCategory.scene,
   note:
-      'Baked three-quarter render of the composed Plaza, companions included — not live 3D.',
+      'Baked three-quarter render of the Plaza with no animals — the live stage composites animal sprites over it. Not live 3D.',
 );
 
 /// Figure base #3 "soft" (the kept consensus base) — 128px sprites.
@@ -71,7 +79,7 @@ const List<PlazaFoundationAsset> plazaFigureAssets = [
   ),
 ];
 
-/// Companion set #1 — 128px sprites, soft low-poly matching base #3.
+/// Companion sets #1 + #2 — 128px sprites, soft low-poly matching base #3.
 const List<PlazaFoundationAsset> plazaCompanionAssets = [
   PlazaFoundationAsset(
     id: 'companion-fox-front',
@@ -142,6 +150,219 @@ const List<PlazaFoundationAsset> plazaCompanionAssets = [
     assetPath: '$_dir/companion-owl-01_three_quarter.png',
     category: PlazaFoundationCategory.companion,
     note: 'Companion set #1 owl, three-quarter sprite.',
+  ),
+  PlazaFoundationAsset(
+    id: 'companion-rabbit-front',
+    name: 'Rabbit — Front',
+    assetPath: '$_dir/companion-rabbit-01_front.png',
+    category: PlazaFoundationCategory.companion,
+    note: 'Companion set #2 rabbit, front sprite.',
+  ),
+  PlazaFoundationAsset(
+    id: 'companion-rabbit-three-quarter',
+    name: 'Rabbit — Three-Quarter',
+    assetPath: '$_dir/companion-rabbit-01_three_quarter.png',
+    category: PlazaFoundationCategory.companion,
+    note: 'Companion set #2 rabbit, three-quarter sprite.',
+  ),
+  PlazaFoundationAsset(
+    id: 'companion-deer-front',
+    name: 'Deer — Front',
+    assetPath: '$_dir/companion-deer-01_front.png',
+    category: PlazaFoundationCategory.companion,
+    note: 'Companion set #2 deer, front sprite.',
+  ),
+  PlazaFoundationAsset(
+    id: 'companion-deer-three-quarter',
+    name: 'Deer — Three-Quarter',
+    assetPath: '$_dir/companion-deer-01_three_quarter.png',
+    category: PlazaFoundationCategory.companion,
+    note: 'Companion set #2 deer, three-quarter sprite.',
+  ),
+  PlazaFoundationAsset(
+    id: 'companion-bearcub-front',
+    name: 'Bear Cub — Front',
+    assetPath: '$_dir/companion-bearcub-01_front.png',
+    category: PlazaFoundationCategory.companion,
+    note: 'Companion set #2 bear cub, front sprite.',
+  ),
+  PlazaFoundationAsset(
+    id: 'companion-bearcub-three-quarter',
+    name: 'Bear Cub — Three-Quarter',
+    assetPath: '$_dir/companion-bearcub-01_three_quarter.png',
+    category: PlazaFoundationCategory.companion,
+    note: 'Companion set #2 bear cub, three-quarter sprite.',
+  ),
+  PlazaFoundationAsset(
+    id: 'companion-duck-front',
+    name: 'Duck — Front',
+    assetPath: '$_dir/companion-duck-01_front.png',
+    category: PlazaFoundationCategory.companion,
+    note: 'Companion set #2 duck, front sprite.',
+  ),
+  PlazaFoundationAsset(
+    id: 'companion-duck-three-quarter',
+    name: 'Duck — Three-Quarter',
+    assetPath: '$_dir/companion-duck-01_three_quarter.png',
+    category: PlazaFoundationCategory.companion,
+    note: 'Companion set #2 duck, three-quarter sprite.',
+  ),
+  PlazaFoundationAsset(
+    id: 'companion-crow-front',
+    name: 'Crow — Front',
+    assetPath: '$_dir/companion-crow-01_front.png',
+    category: PlazaFoundationCategory.companion,
+    note: 'Companion set #2 crow, front sprite.',
+  ),
+  PlazaFoundationAsset(
+    id: 'companion-crow-three-quarter',
+    name: 'Crow — Three-Quarter',
+    assetPath: '$_dir/companion-crow-01_three_quarter.png',
+    category: PlazaFoundationCategory.companion,
+    note: 'Companion set #2 crow, three-quarter sprite.',
+  ),
+];
+
+/// ============================================================================
+/// LIVE STAGE ANIMAL ROSTER
+/// ============================================================================
+/// Every animal that can appear on the live Plaza stage. Data-driven: to
+/// add a future companion set, add its stills to plazaCompanionAssets, its
+/// idle frames to assets/plaza/anim/, and one entry here — the stage,
+/// rotation and tests pick it up from this list alone.
+/// ============================================================================
+
+const String _animDir = 'assets/plaza/anim';
+
+/// Idle frames shipped per animal: every 2nd frame of the 16-frame idle
+/// cycle (frames 001, 003, …, 015), palette-quantized to keep the bundle
+/// lean. Played at 8 fps they read as the full idle, just sampled.
+const int plazaIdleFrameCount = 8;
+
+class PlazaAnimal {
+  /// Short species id, e.g. 'fox'. Also the rotation pool id.
+  final String id;
+
+  final String name;
+
+  /// Three-quarter still sprite (assets/plaza/), used in the catalog grid.
+  final String stillAsset;
+
+  /// Spot on the square backdrop, as fractions of its width/height.
+  ///
+  /// ANCHOR: (spotDx, spotDy) is where the sprite's BOTTOM-CENTRE lands —
+  /// the animal's feet, or its perch point for birds on the bench backrest
+  /// and lamp caps. The sprite is square, so its height equals its width:
+  /// spotWidth × backdrop width. (Sprite frames carry some transparent
+  /// padding, so the visible animal sits a hair above the anchor — close
+  /// enough for a living scene, and the spots below were checked against
+  /// the baked companions render, where set #1 sat in these same places.)
+  final double spotDx;
+  final double spotDy;
+  final double spotWidth;
+
+  const PlazaAnimal({
+    required this.id,
+    required this.name,
+    required this.stillAsset,
+    required this.spotDx,
+    required this.spotDy,
+    required this.spotWidth,
+  });
+
+  /// The shipped idle frame for step [k] (0-based, < plazaIdleFrameCount).
+  String idleFramePath(int k) => '$_animDir/companion-$id-01_idle_$k.png';
+
+  /// All shipped idle frames, in play order.
+  List<String> get idleFrames =>
+      [for (var k = 0; k < plazaIdleFrameCount; k++) idleFramePath(k)];
+}
+
+/// All 10 library animals. Set #1 spots match where they sat in the baked
+/// companions scene (fox by the Halo, dog at bench-1, cat on the paving,
+/// songbird on bench-2's backrest, owl on lamp-1's cap); set #2 takes the
+/// free spots (rabbit on the grass, deer + duck on the front paving, bear
+/// cub by the front pine, crow on lamp-2's cap).
+const List<PlazaAnimal> plazaAnimals = [
+  PlazaAnimal(
+    id: 'fox',
+    name: 'Fox',
+    stillAsset: '$_dir/companion-fox-01_three_quarter.png',
+    spotDx: 0.42,
+    spotDy: 0.615,
+    spotWidth: 0.11,
+  ),
+  PlazaAnimal(
+    id: 'dog',
+    name: 'Dog',
+    stillAsset: '$_dir/companion-dog-01_three_quarter.png',
+    spotDx: 0.335,
+    spotDy: 0.58,
+    spotWidth: 0.11,
+  ),
+  PlazaAnimal(
+    id: 'cat',
+    name: 'Cat',
+    stillAsset: '$_dir/companion-cat-01_three_quarter.png',
+    spotDx: 0.655,
+    spotDy: 0.565,
+    spotWidth: 0.11,
+  ),
+  PlazaAnimal(
+    id: 'songbird',
+    name: 'Songbird',
+    stillAsset: '$_dir/companion-songbird-01_three_quarter.png',
+    spotDx: 0.475,
+    spotDy: 0.578,
+    spotWidth: 0.07,
+  ),
+  PlazaAnimal(
+    id: 'owl',
+    name: 'Owl',
+    stillAsset: '$_dir/companion-owl-01_three_quarter.png',
+    spotDx: 0.335,
+    spotDy: 0.46,
+    spotWidth: 0.07,
+  ),
+  PlazaAnimal(
+    id: 'rabbit',
+    name: 'Rabbit',
+    stillAsset: '$_dir/companion-rabbit-01_three_quarter.png',
+    spotDx: 0.16,
+    spotDy: 0.51,
+    spotWidth: 0.11,
+  ),
+  PlazaAnimal(
+    id: 'deer',
+    name: 'Deer',
+    stillAsset: '$_dir/companion-deer-01_three_quarter.png',
+    spotDx: 0.60,
+    spotDy: 0.68,
+    spotWidth: 0.13,
+  ),
+  PlazaAnimal(
+    id: 'bearcub',
+    name: 'Bear Cub',
+    stillAsset: '$_dir/companion-bearcub-01_three_quarter.png',
+    spotDx: 0.235,
+    spotDy: 0.70,
+    spotWidth: 0.13,
+  ),
+  PlazaAnimal(
+    id: 'duck',
+    name: 'Duck',
+    stillAsset: '$_dir/companion-duck-01_three_quarter.png',
+    spotDx: 0.52,
+    spotDy: 0.735,
+    spotWidth: 0.11,
+  ),
+  PlazaAnimal(
+    id: 'crow',
+    name: 'Crow',
+    stillAsset: '$_dir/companion-crow-01_three_quarter.png',
+    spotDx: 0.55,
+    spotDy: 0.51,
+    spotWidth: 0.07,
   ),
 ];
 
