@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:omni_core_ui/omni_core_ui.dart' show OmniOta;
 
 import 'plaza_scene_screen.dart';
+import 'src/arcade_store.dart';
 import 'src/idle_engine.dart';
 import 'src/idle_store.dart';
 
@@ -14,8 +15,11 @@ import 'src/idle_store.dart';
 /// container; lib/main.dart is only a thin standalone wrapper.
 ///
 /// Real today: Mining accrues by wall clock (also while the app is closed, up
-/// to 24 h per claim) and is saved on this phone. Not built yet: the Arcade
-/// games, other skills, and syncing progress to Omni Node.
+/// to 24 h per claim) and is saved on this phone. The Arcade is the Plaza's
+/// first store (ground level, Avenue 1): the Brawler cabinet stands first —
+/// the game itself still runs from its own app build — and 9x9 second, in
+/// design. Not built yet: other skills, launch wiring, and syncing progress
+/// to Omni Node.
 /// ============================================================================
 
 const String _miningKey = 'skill.mining';
@@ -175,7 +179,7 @@ class _IdlePlazaHomeState extends State<IdlePlazaHome> with WidgetsBindingObserv
         onTap: (index) => setState(() => _currentZoneIndex = index),
         items: const [
           BottomNavigationBarItem(icon: Icon(Icons.location_city_outlined), label: 'Plaza Hub'),
-          BottomNavigationBarItem(icon: Icon(Icons.sports_esports_outlined), label: 'Arcade Lounge'),
+          BottomNavigationBarItem(icon: Icon(Icons.sports_esports_outlined), label: 'The Arcade'),
           BottomNavigationBarItem(icon: Icon(Icons.shield_outlined), label: 'RPG Idle Realm'),
         ],
       ),
@@ -226,8 +230,8 @@ class _IdlePlazaHomeState extends State<IdlePlazaHome> with WidgetsBindingObserv
         const Text('Plaza Gathering Destinations', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.white)),
         const SizedBox(height: 12),
         _buildDestinationTile(
-          title: 'Arcade Lounge',
-          subtitle: 'Mini-games coming soon: Brawler, 9x9 Maze, Janken, Spades',
+          title: 'The Arcade',
+          subtitle: 'The Plaza\'s first store — Brawler here, 9x9 in design',
           icon: Icons.sports_esports,
           color: const Color(0xFFBB86FC),
           onTap: () => setState(() => _currentZoneIndex = 1),
@@ -252,29 +256,233 @@ class _IdlePlazaHomeState extends State<IdlePlazaHome> with WidgetsBindingObserv
     );
   }
 
+  /// The Arcade — the Plaza's first storefront. Its cabinets come from
+  /// [arcadeStorefront], in floor order: the Brawler first (nearly complete,
+  /// actually here), 9x9 second (in design), Janken and Spades behind them.
   Widget _buildArcadeLoungeView() {
+    final storefront = arcadeStorefront;
+    final cabinets = storefront.cabinets;
     return ListView(
       padding: const EdgeInsets.all(16),
       children: [
-        const Text('Arcade Lounge Mini-Games', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.white)),
-        const SizedBox(height: 6),
-        const Text('These games aren\'t in Idle Plaza yet. They\'ll launch from here.', style: TextStyle(color: Colors.grey, fontSize: 12)),
-        const SizedBox(height: 16),
-        GridView.count(
-          shrinkWrap: true,
-          physics: const NeverScrollableScrollPhysics(),
-          crossAxisCount: 2,
-          crossAxisSpacing: 12,
-          mainAxisSpacing: 12,
+        Container(
+          width: double.infinity,
+          padding: const EdgeInsets.all(20),
+          decoration: BoxDecoration(
+            gradient: const LinearGradient(
+              colors: [Color(0xFF3D1A2E), Color(0xFF1A1A2E)],
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+            ),
+            borderRadius: BorderRadius.circular(16),
+            border: Border.all(
+                color: const Color(0xFFFF5252).withValues(alpha: 0.3)),
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(storefront.name,
+                  style: const TextStyle(
+                      fontSize: 20,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.white)),
+              const SizedBox(height: 8),
+              Text(
+                "The Plaza's first store — ${storefront.placement}. "
+                'Cabinet 01 is the Brawler, nearly complete and actually '
+                'here. Cabinet 02 is 9x9, in design.',
+                style: const TextStyle(
+                    color: Colors.grey, fontSize: 13, height: 1.4),
+              ),
+            ],
+          ),
+        ),
+        const SizedBox(height: 20),
+        const Text('Cabinets',
+            style: TextStyle(
+                fontSize: 16,
+                fontWeight: FontWeight.bold,
+                color: Colors.white)),
+        const SizedBox(height: 12),
+        _buildArcadeCabinetCard(cabinets[0], number: 1),
+        _buildArcadeCabinetCard(cabinets[1], number: 2),
+        const SizedBox(height: 8),
+        Row(
           children: [
-            _buildArcadeGameCard('2D Combat Brawler', 'Arena PvP/PvE Action', Icons.sports_mma, const Color(0xFFFF5252)),
-            _buildArcadeGameCard('9x9 Cube Survival', 'Procedural Maze Escape', Icons.grid_4x4, const Color(0xFFFF4081)),
-            _buildArcadeGameCard('Janken Markov AI', 'Adaptive RPSLS AI', Icons.psychology, const Color(0xFFE040FB)),
-            _buildArcadeGameCard('Spades Lounge', 'Casual Card Strategy', Icons.style, const Color(0xFF7C4DFF)),
+            Expanded(child: _buildArcadeCabinetCard(cabinets[2], number: 3)),
+            const SizedBox(width: 12),
+            Expanded(child: _buildArcadeCabinetCard(cabinets[3], number: 4)),
           ],
         ),
       ],
     );
+  }
+
+  Widget _buildArcadeCabinetCard(ArcadeCabinet cabinet,
+      {required int number}) {
+    final color = _arcadeCabinetColor(cabinet.id);
+    return Card(
+      margin: const EdgeInsets.only(bottom: 12),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+      child: InkWell(
+        borderRadius: BorderRadius.circular(12),
+        onTap: () => _showCabinetSheet(cabinet, number: number),
+        child: Padding(
+          padding: const EdgeInsets.all(16),
+          child: Row(
+            children: [
+              CircleAvatar(
+                backgroundColor: color.withValues(alpha: 0.2),
+                child: Icon(_arcadeCabinetIcon(cabinet.id), color: color),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'CABINET ${number.toString().padLeft(2, '0')} · ${cabinet.status.label}',
+                      style: TextStyle(
+                          fontSize: 10,
+                          letterSpacing: 1.2,
+                          color: color,
+                          fontWeight: FontWeight.bold),
+                    ),
+                    const SizedBox(height: 4),
+                    Text(cabinet.name,
+                        style: const TextStyle(
+                            fontWeight: FontWeight.bold, fontSize: 15)),
+                    const SizedBox(height: 2),
+                    Text(cabinet.tagline,
+                        style: const TextStyle(
+                            fontSize: 11, color: Colors.grey)),
+                  ],
+                ),
+              ),
+              const Icon(Icons.arrow_forward_ios,
+                  size: 14, color: Colors.grey),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Color _arcadeCabinetColor(String cabinetId) => switch (cabinetId) {
+        'brawler' => const Color(0xFFFF5252),
+        'nine-by-nine' => const Color(0xFFFF4081),
+        'janken' => const Color(0xFFE040FB),
+        'spades' => const Color(0xFF7C4DFF),
+        _ => const Color(0xFFBB86FC),
+      };
+
+  IconData _arcadeCabinetIcon(String cabinetId) => switch (cabinetId) {
+        'brawler' => Icons.sports_mma,
+        'nine-by-nine' => Icons.grid_4x4,
+        'janken' => Icons.psychology,
+        'spades' => Icons.style,
+        _ => Icons.sports_esports,
+      };
+
+  void _showCabinetSheet(ArcadeCabinet cabinet, {required int number}) {
+    showModalBottomSheet<void>(
+      context: context,
+      backgroundColor: const Color(0xFF1A1A2E),
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
+      ),
+      builder: (context) {
+        return ListView(
+          padding: const EdgeInsets.all(20),
+          shrinkWrap: true,
+          children: [
+            Text(
+              'CABINET ${number.toString().padLeft(2, '0')} · ${cabinet.status.label}',
+              style: TextStyle(
+                  fontSize: 10,
+                  letterSpacing: 1.2,
+                  color: _arcadeCabinetColor(cabinet.id),
+                  fontWeight: FontWeight.bold),
+            ),
+            const SizedBox(height: 6),
+            Text(cabinet.name,
+                style: const TextStyle(
+                    fontSize: 20, fontWeight: FontWeight.bold)),
+            const SizedBox(height: 4),
+            Text(cabinet.tagline,
+                style: const TextStyle(fontSize: 13, color: Colors.grey)),
+            const SizedBox(height: 16),
+            for (final detail in cabinet.details)
+              Padding(
+                padding: const EdgeInsets.only(bottom: 8),
+                child: Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Text('•  ',
+                        style: TextStyle(color: Colors.grey)),
+                    Expanded(
+                      child: Text(detail,
+                          style: const TextStyle(
+                              fontSize: 13, height: 1.4)),
+                    ),
+                  ],
+                ),
+              ),
+            if (cabinet.id == 'brawler') ..._buildBrawlerSheetSections(),
+            if (cabinet.id == 'nine-by-nine')
+              ..._buildNineByNineSheetSections(),
+          ],
+        );
+      },
+    );
+  }
+
+  List<Widget> _buildBrawlerSheetSections() {
+    return [
+      const SizedBox(height: 8),
+      const Text('The roster — 12 fighters',
+          style: TextStyle(fontSize: 15, fontWeight: FontWeight.bold)),
+      const SizedBox(height: 8),
+      for (final element in BrawlerElement.values)
+        Padding(
+          padding: const EdgeInsets.only(bottom: 6),
+          child: Text(
+            '${element.label}: ${brawlerFighters.where((f) => f.element == element).map((f) => f.sign).join(', ')}',
+            style: const TextStyle(fontSize: 13, height: 1.4),
+          ),
+        ),
+      const SizedBox(height: 8),
+      Text(
+        'Boss: $brawlerBossSign, the 13th sign — unplayable by design. '
+        'Beat all 12 fighters plus $brawlerBossSign to unlock the secret character.',
+        style: const TextStyle(fontSize: 13, height: 1.4),
+      ),
+    ];
+  }
+
+  List<Widget> _buildNineByNineSheetSections() {
+    return [
+      const SizedBox(height: 8),
+      const Text('The design so far',
+          style: TextStyle(fontSize: 15, fontWeight: FontWeight.bold)),
+      const SizedBox(height: 8),
+      Text(
+        '${NineByNineDesign.genre}. ${NineByNineDesign.structurePerSide} rooms per side, '
+        '${NineByNineDesign.shellCount} shells, ${NineByNineDesign.heartRoomCount} heart rooms. '
+        'Escape is a ${NineByNineDesign.escapeRule.toLowerCase()} — stay in the correct room until the exit opens.',
+        style: const TextStyle(fontSize: 13, height: 1.4),
+      ),
+      const SizedBox(height: 8),
+      Text(
+        'Modes: ${NineByNineDesign.modes.join(', ')}. First- or third-person — your call.',
+        style: const TextStyle(fontSize: 13, height: 1.4),
+      ),
+      const SizedBox(height: 8),
+      Text(
+        'A run: ${NineByNineDesign.runFlowBeats.join(' → ')}.',
+        style: const TextStyle(fontSize: 13, height: 1.4),
+      ),
+    ];
   }
 
   Widget _buildRpgIdleRealmView() {
@@ -361,31 +569,4 @@ class _IdlePlazaHomeState extends State<IdlePlazaHome> with WidgetsBindingObserv
     );
   }
 
-  Widget _buildArcadeGameCard(String title, String subtitle, IconData icon, Color color) {
-    return Card(
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-      child: InkWell(
-        borderRadius: BorderRadius.circular(12),
-        onTap: () => _snack('$title is coming soon to Idle Plaza.', color),
-        child: Padding(
-          padding: const EdgeInsets.all(12),
-          child: FittedBox(
-            fit: BoxFit.scaleDown,
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Icon(icon, size: 36, color: color.withOpacity(0.6)),
-                const SizedBox(height: 8),
-                Text(title, textAlign: TextAlign.center, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13)),
-                const SizedBox(height: 4),
-                Text(subtitle, textAlign: TextAlign.center, style: const TextStyle(fontSize: 10, color: Colors.grey)),
-                const SizedBox(height: 6),
-                const Text('COMING SOON', style: TextStyle(fontSize: 9, letterSpacing: 1.2, color: Colors.orangeAccent)),
-              ],
-            ),
-          ),
-        ),
-      ),
-    );
-  }
 }
