@@ -4,6 +4,7 @@ import 'package:omni_core_ui/omni_core_ui.dart' show OmniOta;
 
 import 'plaza_scene_screen.dart';
 import 'src/arcade_store.dart';
+import 'src/plaza_foundations.dart';
 import 'src/idle_engine.dart';
 import 'src/idle_store.dart';
 
@@ -202,29 +203,10 @@ class _IdlePlazaHomeState extends State<IdlePlazaHome> with WidgetsBindingObserv
     return ListView(
       padding: const EdgeInsets.all(16),
       children: [
-        Container(
-          width: double.infinity,
-          padding: const EdgeInsets.all(20),
-          decoration: BoxDecoration(
-            gradient: const LinearGradient(
-              colors: [Color(0xFF2E1A47), Color(0xFF1A1A2E)],
-              begin: Alignment.topLeft,
-              end: Alignment.bottomRight,
-            ),
-            borderRadius: BorderRadius.circular(16),
-            border: Border.all(color: const Color(0xFFBB86FC).withOpacity(0.3)),
-          ),
-          child: const Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text('Welcome to Halo Plaza', style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: Colors.white)),
-              SizedBox(height: 8),
-              Text(
-                'Home of every Omniverse game. Skills keep earning while the app is closed.',
-                style: TextStyle(color: Colors.grey, fontSize: 13, height: 1.4),
-              ),
-            ],
-          ),
+        _buildSceneCard(
+          imageAsset: plazaSceneAsset.assetPath,
+          title: 'Welcome to Halo Plaza',
+          subtitle: 'Home of every Omniverse game. Skills keep earning while the app is closed.',
         ),
         const SizedBox(height: 20),
         const Text('Plaza Gathering Destinations', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.white)),
@@ -256,6 +238,55 @@ class _IdlePlazaHomeState extends State<IdlePlazaHome> with WidgetsBindingObserv
     );
   }
 
+  /// A place card: a baked scene render on top, caption below — the same
+  /// language as the Plaza Foundations live stage. The render is what makes
+  /// a screen read as a place instead of a list of text cards.
+  Widget _buildSceneCard({
+    required String imageAsset,
+    required String title,
+    required String subtitle,
+  }) {
+    return Card(
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+      clipBehavior: Clip.antiAlias,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          AspectRatio(
+            aspectRatio: 16 / 10,
+            child: Image.asset(
+              imageAsset,
+              fit: BoxFit.cover,
+              errorBuilder: (context, error, stackTrace) => Container(
+                color: const Color(0xFF1A1A2E),
+                alignment: Alignment.center,
+                child: const Icon(Icons.broken_image_outlined,
+                    color: Colors.grey, size: 32),
+              ),
+            ),
+          ),
+          Padding(
+            padding: const EdgeInsets.all(16),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(title,
+                    style: const TextStyle(
+                        fontSize: 20,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.white)),
+                const SizedBox(height: 8),
+                Text(subtitle,
+                    style: const TextStyle(
+                        color: Colors.grey, fontSize: 13, height: 1.4)),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
   /// The Arcade — the Plaza's first storefront. Its cabinets come from
   /// [arcadeStorefront], in floor order: the Brawler first (nearly complete,
   /// actually here), 9x9 second (in design), Janken and Spades behind them.
@@ -265,37 +296,12 @@ class _IdlePlazaHomeState extends State<IdlePlazaHome> with WidgetsBindingObserv
     return ListView(
       padding: const EdgeInsets.all(16),
       children: [
-        Container(
-          width: double.infinity,
-          padding: const EdgeInsets.all(20),
-          decoration: BoxDecoration(
-            gradient: const LinearGradient(
-              colors: [Color(0xFF3D1A2E), Color(0xFF1A1A2E)],
-              begin: Alignment.topLeft,
-              end: Alignment.bottomRight,
-            ),
-            borderRadius: BorderRadius.circular(16),
-            border: Border.all(
-                color: const Color(0xFFFF5252).withValues(alpha: 0.3)),
-          ),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(storefront.name,
-                  style: const TextStyle(
-                      fontSize: 20,
-                      fontWeight: FontWeight.bold,
-                      color: Colors.white)),
-              const SizedBox(height: 8),
-              Text(
-                "The Plaza's first store — ${storefront.placement}. "
-                'Cabinet 01 is the Brawler, nearly complete and actually '
-                'here. Cabinet 02 is 9x9, in design.',
-                style: const TextStyle(
-                    color: Colors.grey, fontSize: 13, height: 1.4),
-              ),
-            ],
-          ),
+        _buildSceneCard(
+          imageAsset: arcadeStorefrontSceneAsset,
+          title: storefront.name,
+          subtitle: "The Plaza's first store — ${storefront.placement}. "
+              'Cabinet 01 is the Brawler, nearly complete and actually '
+              'here. Cabinet 02 is 9x9, in design.',
         ),
         const SizedBox(height: 20),
         const Text('Cabinets',
@@ -387,13 +393,22 @@ class _IdlePlazaHomeState extends State<IdlePlazaHome> with WidgetsBindingObserv
   void _showCabinetSheet(ArcadeCabinet cabinet, {required int number}) {
     showModalBottomSheet<void>(
       context: context,
+      // Scroll-controlled so tall sheets scroll instead of overflowing.
+      // useSafeArea only covers the top/left/right — the bottom needs the
+      // explicit SafeArea below, or the sheet runs to the bottom edge of
+      // the screen and its last lines sit behind the Android system
+      // navigation bar, unreadable.
+      isScrollControlled: true,
+      useSafeArea: true,
       backgroundColor: const Color(0xFF1A1A2E),
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
       ),
       builder: (context) {
-        return ListView(
-          padding: const EdgeInsets.all(20),
+        return SafeArea(
+          top: false,
+          child: ListView(
+            padding: const EdgeInsets.fromLTRB(20, 20, 20, 28),
           shrinkWrap: true,
           children: [
             Text(
@@ -431,7 +446,8 @@ class _IdlePlazaHomeState extends State<IdlePlazaHome> with WidgetsBindingObserv
             if (cabinet.id == 'brawler') ..._buildBrawlerSheetSections(),
             if (cabinet.id == 'nine-by-nine')
               ..._buildNineByNineSheetSections(),
-          ],
+            ],
+          ),
         );
       },
     );

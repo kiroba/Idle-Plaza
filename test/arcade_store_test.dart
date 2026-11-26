@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:flutter_test/flutter_test.dart';
 import 'package:idle_plaza/src/arcade_store.dart';
 
@@ -29,6 +31,13 @@ void main() {
         expect(c.details, isNotEmpty, reason: c.id);
         expect(c.status.label, isNotEmpty, reason: c.id);
       }
+    });
+
+    test('the storefront scene render exists under assets/plaza/', () {
+      expect(arcadeStorefrontSceneAsset, startsWith('assets/plaza/'));
+      expect(arcadeStorefrontSceneAsset.endsWith('.jpg'), isTrue);
+      expect(File(arcadeStorefrontSceneAsset).existsSync(), isTrue,
+          reason: arcadeStorefrontSceneAsset);
     });
 
     test('the Brawler cabinet is playable and says where the game runs', () {
