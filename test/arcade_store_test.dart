@@ -1,4 +1,7 @@
+import 'dart:convert';
+
 import 'package:flutter_test/flutter_test.dart';
+import 'package:idle_plaza/src/arcade_scene_image.dart';
 import 'package:idle_plaza/src/arcade_store.dart';
 
 void main() {
@@ -29,6 +32,14 @@ void main() {
         expect(c.details, isNotEmpty, reason: c.id);
         expect(c.status.label, isNotEmpty, reason: c.id);
       }
+    });
+
+    test('the embedded storefront scene decodes to a JPEG', () {
+      final bytes = base64Decode(arcadeStorefrontJpegBase64);
+      expect(bytes.length, 80743);
+      // JPEG start/end markers.
+      expect(bytes.sublist(0, 2), [0xFF, 0xD8]);
+      expect(bytes.sublist(bytes.length - 2), [0xFF, 0xD9]);
     });
 
     test('the Brawler cabinet is playable and says where the game runs', () {

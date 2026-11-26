@@ -327,7 +327,11 @@ class _PlazaSceneScreenState extends State<PlazaSceneScreen> {
         elevation: 2,
       ),
       body: ListView(
-        padding: const EdgeInsets.all(16),
+        // Bottom padding clears the Android system nav bar: this route
+        // has no bottom navigation bar of its own, so without the inset
+        // the last rows scroll underneath it and can't be read.
+        padding: EdgeInsets.fromLTRB(
+            16, 16, 16, 16 + MediaQuery.of(context).padding.bottom),
         children: [
           _buildLiveStageCard(),
           const SizedBox(height: 20),
