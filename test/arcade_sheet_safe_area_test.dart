@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:idle_plaza/idle_plaza_home.dart';
 import 'package:idle_plaza/plaza_scene_screen.dart';
-import 'package:idle_plaza/src/arcade_store.dart';
 import 'package:idle_plaza/src/plaza_foundations.dart';
 
 /// Phone-sized viewport checks for the two findings from Kiro's Nov 25
@@ -34,12 +33,11 @@ void main() {
       (tester) async {
     setPhoneViewport(tester);
     await openArcadeTab(tester);
+    // The storefront scene is embedded as base64 (see
+    // lib/src/arcade_scene_image.dart), so it arrives as a MemoryImage.
     expect(
-      find.byWidgetPredicate((w) =>
-          w is Image &&
-          w.image is AssetImage &&
-          (w.image as AssetImage).assetName ==
-              arcadeStorefrontSceneAsset),
+      find.byWidgetPredicate(
+          (w) => w is Image && w.image is MemoryImage),
       findsOneWidget,
     );
   });

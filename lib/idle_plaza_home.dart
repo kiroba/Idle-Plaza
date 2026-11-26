@@ -1,8 +1,10 @@
 import 'dart:async';
+import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:omni_core_ui/omni_core_ui.dart' show OmniOta;
 
 import 'plaza_scene_screen.dart';
+import 'src/arcade_scene_image.dart';
 import 'src/arcade_store.dart';
 import 'src/plaza_foundations.dart';
 import 'src/idle_engine.dart';
@@ -204,7 +206,7 @@ class _IdlePlazaHomeState extends State<IdlePlazaHome> with WidgetsBindingObserv
       padding: const EdgeInsets.all(16),
       children: [
         _buildSceneCard(
-          imageAsset: plazaSceneAsset.assetPath,
+          image: AssetImage(plazaSceneAsset.assetPath),
           title: 'Welcome to Halo Plaza',
           subtitle: 'Home of every Omniverse game. Skills keep earning while the app is closed.',
         ),
@@ -242,7 +244,7 @@ class _IdlePlazaHomeState extends State<IdlePlazaHome> with WidgetsBindingObserv
   /// language as the Plaza Foundations live stage. The render is what makes
   /// a screen read as a place instead of a list of text cards.
   Widget _buildSceneCard({
-    required String imageAsset,
+    required ImageProvider image,
     required String title,
     required String subtitle,
   }) {
@@ -254,8 +256,8 @@ class _IdlePlazaHomeState extends State<IdlePlazaHome> with WidgetsBindingObserv
         children: [
           AspectRatio(
             aspectRatio: 16 / 10,
-            child: Image.asset(
-              imageAsset,
+            child: Image(
+              image: image,
               fit: BoxFit.cover,
               errorBuilder: (context, error, stackTrace) => Container(
                 color: const Color(0xFF1A1A2E),
@@ -297,7 +299,7 @@ class _IdlePlazaHomeState extends State<IdlePlazaHome> with WidgetsBindingObserv
       padding: const EdgeInsets.all(16),
       children: [
         _buildSceneCard(
-          imageAsset: arcadeStorefrontSceneAsset,
+          image: MemoryImage(base64Decode(arcadeStorefrontJpegBase64)),
           title: storefront.name,
           subtitle: "The Plaza's first store — ${storefront.placement}. "
               'Cabinet 01 is the Brawler, nearly complete and actually '

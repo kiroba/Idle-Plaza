@@ -19,13 +19,6 @@
 /// design (13 per side, seven shells, four heart rooms, holdout escape).
 /// ============================================================================
 
-/// Baked storefront scene render for The Arcade — the visual anchor of the
-/// Arcade screen. Same low-poly diorama language as the Plaza Foundations
-/// scene backdrop: a miniature-model shopfront with the neon ARCADE sign,
-/// cabinets glowing in the window, trees, a bench and the pond edge.
-const String arcadeStorefrontSceneAsset =
-    'assets/plaza/arcade_storefront.jpg';
-
 /// Where a cabinet stands: on the floor and playable, still being designed,
 /// or a future cabinet.
 enum ArcadeCabinetStatus { playable, inDesign, comingSoon }
