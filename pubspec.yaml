@@ -12,6 +12,10 @@ dependencies:
   cupertino_icons: ^1.0.6
   http: ^1.2.0
   ota_update: ^7.1.0
+  # Brawler launch wiring: android_intent_plus opens the installed Brawler
+  # by package name; url_launcher opens the tester page fallback link.
+  android_intent_plus: ^6.1.0
+  url_launcher: ^6.3.3
   omni_core_ui:
     git:
       url: https://github.com/kiroba/Omni-Core-UI.git

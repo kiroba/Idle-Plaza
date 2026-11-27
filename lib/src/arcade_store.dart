@@ -163,7 +163,7 @@ const ArcadeStorefront arcadeStorefront = ArcadeStorefront(
         '12 zodiac fighters, each with an elemental special',
         'Online PvP versus, with dual-signed match results',
         'Boss: Ophiuchus, the 13th sign — unplayable by design',
-        'The game runs from the Brawler app build; this cabinet is its storefront home — launch wiring lands in a later slice',
+        'The game runs from the Brawler app build — tap Play to open it',
       ],
     ),
     ArcadeCabinet(
