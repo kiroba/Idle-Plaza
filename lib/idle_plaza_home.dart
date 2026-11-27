@@ -6,6 +6,7 @@ import 'package:omni_core_ui/omni_core_ui.dart' show OmniOta;
 import 'plaza_scene_screen.dart';
 import 'src/arcade_scene_image.dart';
 import 'src/arcade_store.dart';
+import 'src/brawler_launch.dart';
 import 'src/plaza_foundations.dart';
 import 'src/idle_engine.dart';
 import 'src/idle_store.dart';
@@ -20,15 +21,19 @@ import 'src/idle_store.dart';
 /// Real today: Mining accrues by wall clock (also while the app is closed, up
 /// to 24 h per claim) and is saved on this phone. The Arcade is the Plaza's
 /// first store (ground level, Avenue 1): the Brawler cabinet stands first —
-/// the game itself still runs from its own app build — and 9x9 second, in
-/// design. Not built yet: other skills, launch wiring, and syncing progress
-/// to Omni Node.
+/// the game itself still runs from its own app build, and its cabinet's
+/// Play button opens it — and 9x9 second, in design. Not built yet: other
+/// skills and syncing progress to Omni Node.
 /// ============================================================================
 
 const String _miningKey = 'skill.mining';
 
 class IdlePlazaHome extends StatefulWidget {
-  const IdlePlazaHome({super.key});
+  /// Override the cross-app launcher (tests inject a fake; the app uses
+  /// the real one, which opens the installed Brawler by package name).
+  final BrawlerLauncher? brawlerLauncher;
+
+  const IdlePlazaHome({super.key, this.brawlerLauncher});
 
   @override
   State<IdlePlazaHome> createState() => _IdlePlazaHomeState();
@@ -445,7 +450,7 @@ class _IdlePlazaHomeState extends State<IdlePlazaHome> with WidgetsBindingObserv
                   ],
                 ),
               ),
-            if (cabinet.id == 'brawler') ..._buildBrawlerSheetSections(),
+            if (cabinet.id == 'brawler') ..._buildBrawlerSheetSections(context),
             if (cabinet.id == 'nine-by-nine')
               ..._buildNineByNineSheetSections(),
             ],
@@ -455,7 +460,7 @@ class _IdlePlazaHomeState extends State<IdlePlazaHome> with WidgetsBindingObserv
     );
   }
 
-  List<Widget> _buildBrawlerSheetSections() {
+  List<Widget> _buildBrawlerSheetSections(BuildContext sheetContext) {
     return [
       const SizedBox(height: 8),
       const Text('The roster — 12 fighters',
@@ -475,7 +480,95 @@ class _IdlePlazaHomeState extends State<IdlePlazaHome> with WidgetsBindingObserv
         'Beat all 12 fighters plus $brawlerBossSign to unlock the secret character.',
         style: const TextStyle(fontSize: 13, height: 1.4),
       ),
+      const SizedBox(height: 20),
+      SizedBox(
+        width: double.infinity,
+        child: FilledButton.icon(
+          onPressed: () => _launchBrawler(sheetContext),
+          icon: const Icon(Icons.play_arrow),
+          label: const Text('Play OmniBrawler'),
+        ),
+      ),
     ];
+  }
+
+  /// Play on the Brawler cabinet: open the installed Brawler app. If it
+  /// is not installed, say so honestly — never pretend a launch happened.
+  Future<void> _launchBrawler(BuildContext sheetContext) async {
+    final launcher = widget.brawlerLauncher ?? BrawlerLauncher();
+    final result = await launcher.openBrawler();
+    if (!sheetContext.mounted) return;
+    if (result == BrawlerLaunchResult.launched) {
+      // The Brawler takes over the screen from here.
+      Navigator.of(sheetContext).pop();
+      return;
+    }
+    _showBrawlerNotInstalledSheet(sheetContext, launcher);
+  }
+
+  /// The Brawler is not on this phone: say so, and point at the tester
+  /// page where its app build lives. Same sheet scaffold as the cabinet
+  /// sheets (explicit SafeArea — useSafeArea alone never covers the
+  /// bottom, or the last lines sit behind the system nav bar).
+  void _showBrawlerNotInstalledSheet(
+      BuildContext context, BrawlerLauncher launcher) {
+    showModalBottomSheet<void>(
+      context: context,
+      isScrollControlled: true,
+      useSafeArea: true,
+      backgroundColor: const Color(0xFF1A1A2E),
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
+      ),
+      builder: (sheetContext) {
+        return SafeArea(
+          top: false,
+          child: ListView(
+            padding: const EdgeInsets.fromLTRB(20, 20, 20, 28),
+            shrinkWrap: true,
+            children: [
+              const Text("OmniBrawler isn't installed",
+                  style:
+                      TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
+              const SizedBox(height: 8),
+              const Text(
+                'The Brawler runs from its own app build. Install it from the tester page, then come back and tap Play.',
+                style:
+                    TextStyle(fontSize: 13, height: 1.4, color: Colors.grey),
+              ),
+              const SizedBox(height: 16),
+              SizedBox(
+                width: double.infinity,
+                child: FilledButton.icon(
+                  onPressed: () async {
+                    final opened = await launcher.openTesterPage();
+                    if (!sheetContext.mounted) return;
+                    if (!opened) {
+                      ScaffoldMessenger.of(sheetContext).showSnackBar(
+                        const SnackBar(
+                          content:
+                              Text('Could not open the tester page.'),
+                        ),
+                      );
+                    }
+                  },
+                  icon: const Icon(Icons.open_in_browser),
+                  label: const Text('Open tester page'),
+                ),
+              ),
+              const SizedBox(height: 8),
+              SizedBox(
+                width: double.infinity,
+                child: TextButton(
+                  onPressed: () => Navigator.of(sheetContext).pop(),
+                  child: const Text('Close'),
+                ),
+              ),
+            ],
+          ),
+        );
+      },
+    );
   }
 
   List<Widget> _buildNineByNineSheetSections() {
